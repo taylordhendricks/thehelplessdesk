@@ -1,0 +1,16 @@
+[System.Console]::Beep(196,1200);
+[System.Console]::Beep(196,300);
+[System.Console]::Beep(220,400);
+[System.Console]::Beep(196,400);
+[System.Console]::Beep(174,300);
+[System.Console]::Beep(155,1000);
+[System.Console]::Beep(146,1000);
+[System.Console]::Beep(196,1000);
+[System.Console]::Beep(196,300);
+[System.Console]::Beep(220,400);
+[System.Console]::Beep(196,400);
+[System.Console]::Beep(174,300);
+[System.Console]::Beep(155,400);
+[System.Console]::Beep(174,300);
+[System.Console]::Beep(155,400);
+[System.Console]::Beep(146,1000);
