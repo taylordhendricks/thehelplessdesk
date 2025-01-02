@@ -6,7 +6,7 @@ import os
 
 pygame.init()
 
-# Colors
+# Useful Colors
 white = (255, 255, 255)
 yellow = (255, 255, 102)
 black = (0, 0, 0)
@@ -46,9 +46,15 @@ snake_speed = int(config['SETTINGS']['snake_speed'])
 # Screen dimensions
 screen = pygame.display.set_mode((width, height))
 pygame.display.set_caption('Snake Game')
+fullscreen = False
+
+# Load and set the custom game icon
+icon = pygame.image.load(r"python\games\Snake\Assets\snake_icon.ico").convert_alpha()
+pygame.display.set_icon(icon)
 
 # Load and scale the main menu background image
 main_menu_bg = pygame.image.load(r"python\games\Snake\Assets\main_menu.png").convert()
+game_loop_bg = pygame.image.load(r"python\games\Snake\Assets\game_background.png").convert()
 
 clock = pygame.time.Clock()
 
@@ -57,18 +63,54 @@ score_font = pygame.font.SysFont("comicsansms", 35)
 
 #Load and scale Sprites
 def scale_sprites():
-    global head_image, body_image, tail_image, food_image, superfood_image
+    global head_image, body_image, tail_image, food_image, food2_image, food3_image, food4_image, multiplier_image, divider_image, poison_image, antidote_image
     head_image = pygame.transform.scale(pygame.image.load(r"python\games\Snake\Assets\snake_head.png").convert_alpha(), (snake_block, snake_block))
     body_image = pygame.transform.scale(pygame.image.load(r"python\games\Snake\Assets\snake_body.png").convert_alpha(), (snake_block, snake_block))
     tail_image = pygame.transform.scale(pygame.image.load(r"python\games\Snake\Assets\snake_tail.png").convert_alpha(), (snake_block, snake_block))
     food_image = pygame.transform.scale(pygame.image.load(r"python\games\Snake\Assets\food.png").convert_alpha(), (snake_block, snake_block))
-    superfood_image = pygame.transform.scale(pygame.image.load(r"python\games\Snake\Assets\egg.png").convert_alpha(), (snake_block, snake_block))
+    food2_image = pygame.transform.scale(pygame.image.load(r"python\games\Snake\Assets\food2.png").convert_alpha(), (snake_block, snake_block))
+    food3_image = pygame.transform.scale(pygame.image.load(r"python\games\Snake\Assets\food3.png").convert_alpha(), (snake_block, snake_block))
+    food4_image = pygame.transform.scale(pygame.image.load(r"python\games\Snake\Assets\food4.png").convert_alpha(), (snake_block, snake_block))
+    multiplier_image = pygame.transform.scale(pygame.image.load(r"python\games\Snake\Assets\egg.png").convert_alpha(), (snake_block, snake_block))
+    divider_image = pygame.transform.scale(pygame.image.load(r"python\games\Snake\Assets\divider.png").convert_alpha(), (snake_block, snake_block))
+    poison_image = pygame.transform.scale(pygame.image.load(r"python\games\Snake\Assets\poison.png").convert_alpha(), (snake_block, snake_block))
+    antidote_image = pygame.transform.scale(pygame.image.load(r"python\games\Snake\Assets\antidote.png").convert_alpha(), (snake_block, snake_block))
+
+def render_text_with_background(text, font, text_color, bg_color, position, center=False):
+    """
+    Render text with a semi-transparent background.
+    :param text: The text to render.
+    :param font: The pygame font object.
+    :param text_color: The color of the text.
+    :param bg_color: The background color (with alpha).
+    :param position: Tuple (x, y) for the top-left corner or center of the text.
+    :param center: Whether to center the text at the given position.
+    :return: Rendered surface and its rectangle.
+    """
+    # Render the text surface
+    text_surface = font.render(text, True, text_color)
+    text_rect = text_surface.get_rect()
+
+    if center:
+        text_rect.center = position
+    else:
+        text_rect.topleft = position
+
+    # Create a semi-transparent background surface
+    bg_surface = pygame.Surface((text_rect.width + 10, text_rect.height + 10), pygame.SRCALPHA)
+    bg_surface.fill(bg_color)  # Semi-transparent background
+
+    # Draw background and then text
+    screen.blit(bg_surface, (text_rect.x - 5, text_rect.y - 5))
+    screen.blit(text_surface, text_rect.topleft)
+
+    return text_surface, text_rect
 
 def main_menu():
     menu_running = True
     selected_index = 0  # Track which menu item is selected
     options = ["New Game", "HiScores", "Settings", "Exit"]
-    option_positions = []
+    option_positions = []  # Stores rectangles for hit detection
 
     while menu_running:
         # Scale the background image to fit the current resolution
@@ -77,29 +119,36 @@ def main_menu():
 
         # Title or Game Image
         title_font = pygame.font.SysFont("comicsansms", 50)
-        title = title_font.render("Snake Game", True, yellow)
-        screen.blit(title, [width / 2 - title.get_width() / 2, 50])
+        render_text_with_background(
+            "Snake Game",
+            title_font,
+            yellow,
+            (0, 0, 0, 150),  # Semi-transparent black (alpha=150)
+            (width / 2, 50),  # Centered horizontally
+            center=True
+        )
 
         # Menu Options
         options_font = pygame.font.SysFont("bahnschrift", 35)
-        option_positions = []  # Reset positions for hit detection
+        option_positions.clear()  # Reset positions for hit detection
 
         for idx, option in enumerate(options):
             # Check if the current option is hovered/selected
             is_selected = idx == selected_index
             color = white if not is_selected else yellow
-            scale = 1.0 if not is_selected else 1.2
 
-            # Render option with scaling
-            option_surface = options_font.render(option, True, color)
-            option_rect = option_surface.get_rect(center=(width // 2, 150 + idx * 50))
-            scaled_surface = pygame.transform.scale(option_surface, (int(option_rect.width * scale), int(option_rect.height * scale)))
+            # Render option with background
+            _, option_rect = render_text_with_background(
+                option,
+                options_font,
+                color,
+                (0, 0, 0, 150),  # Semi-transparent black background
+                (width / 2, 150 + idx * 50),
+                center=True
+            )
 
-            # Store positions for hit detection
+            # Store the rect for hit detection
             option_positions.append(option_rect)
-
-            # Draw the option
-            screen.blit(scaled_surface, scaled_surface.get_rect(center=option_rect.center))
 
         pygame.display.update()
 
@@ -244,35 +293,75 @@ def display_highscores():
     menu_running = True
     scroll_offset = 0
     r_key_held = False
-    r_key_timer = 0
+    r_key_start_time = None  # Tracks the start time for holding the R key
 
     while menu_running:
-        screen.fill(blue)
+        scaled_bg = pygame.transform.scale(main_menu_bg, (width, height))
+        screen.blit(scaled_bg, (0, 0))  # Draw the background image
+
         title_font = pygame.font.SysFont("comicsansms", 50)
-        title = title_font.render("High Scores", True, yellow)
-        screen.blit(title, [width / 2 - title.get_width() / 2, 50])
+        render_text_with_background(
+            "High Scores",
+            title_font,
+            yellow,
+            (0, 0, 0, 150),
+            (width / 2 - 150, 50)
+        )
 
         scores_font = pygame.font.SysFont("bahnschrift", 30)
         y_offset = 150 - scroll_offset
         for idx, (name, score) in enumerate(scores):
-            # Left-align names at 10% of the screen width
-            name_text = scores_font.render(f"{idx + 1}. {name}", True, white)
-            screen.blit(name_text, (width * 0.25, y_offset + idx * 30))
-
-            # Right-align scores at 90% of the screen width
-            score_text = scores_font.render(str(score), True, white)
-            screen.blit(score_text, (width * 0.75 - score_text.get_width(), y_offset + idx * 30))
+            # Name on the left at 25% width
+            render_text_with_background(
+                f"{idx + 1}. {name}",
+                scores_font,
+                white,
+                (0, 0, 0, 150),
+                (width * 0.25, y_offset + idx * 30)
+            )
+            # Score on the right at 75% width
+            render_text_with_background(
+                str(score),
+                scores_font,
+                white,
+                (0, 0, 0, 150),
+                (width * 0.75 - scores_font.size(str(score))[0], y_offset + idx * 30)
+            )
 
         back_font = pygame.font.SysFont("bahnschrift", 30)
-        back_text = back_font.render("Press ESC to return to Main Menu", True, white)
-        screen.blit(back_text, (width / 2 - back_text.get_width() / 2, height - 50))
+        render_text_with_background(
+            "Press ESC to return to Main Menu",
+            back_font,
+            white,
+            (0, 0, 0, 150),
+            (width / 2, height - 50),
+            center=True 
+        )
 
-        reset_text = back_font.render("Hold R for 5 seconds to Reset High Scores", True, white)
-        screen.blit(reset_text, (width / 2 - reset_text.get_width() / 2, height - 100))
+        render_text_with_background(
+            "Hold R for 5 seconds to Reset High Scores",
+            back_font,
+            white,
+            (0, 0, 0, 150),
+            (width / 2, height - 100),
+            center=True 
+        )
 
         if r_key_held:
-            hold_text = back_font.render(f"Resetting in {5 - r_key_timer // 1000} seconds...", True, red)
-            screen.blit(hold_text, (width / 2 - hold_text.get_width() / 2, height - 150))
+            remaining_time = max(0, 5 - (pygame.time.get_ticks() - r_key_start_time) // 1000)
+            hold_text = f"Resetting in {remaining_time} seconds..."
+            render_text_with_background(
+                hold_text,
+                back_font,
+                red,
+                (0, 0, 0, 150),
+                (width / 2, height - 150),
+                center=True 
+            )
+            if remaining_time <= 0:  # Reset the high scores after 5 seconds
+                reset_highscores()
+                scores = []  # Clear the in-memory scores
+                r_key_held = False  # Reset the state
 
         pygame.display.update()
 
@@ -283,37 +372,28 @@ def display_highscores():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:  # Return to Main Menu
                     return
-                if event.key == pygame.K_r:  # Start reset timer
+                if event.key == pygame.K_r and not r_key_held:  # Start reset timer
                     r_key_held = True
-                    r_key_timer = 0
+                    r_key_start_time = pygame.time.get_ticks()  # Record the time when R is pressed
                 if event.key == pygame.K_UP:  # Scroll up
                     scroll_offset = max(0, scroll_offset - 30)
                 if event.key == pygame.K_DOWN:  # Scroll down
                     if len(scores) * 30 + 150 > height:
                         scroll_offset = min(scroll_offset + 30, len(scores) * 30 + 150 - height)
             if event.type == pygame.KEYUP:
-                if event.key == pygame.K_r:  # Reset timer on key release
+                if event.key == pygame.K_r:  # Cancel the reset timer on key release
                     r_key_held = False
-                    r_key_timer = 0
-
-        if r_key_held:
-            r_key_timer += clock.get_time()
-            if r_key_timer >= 5000:  # 5 seconds hold
-                reset_highscores()
-                scores = []  # Clear the in-memory scores
-                r_key_held = False
+                    r_key_start_time = None
 
 def game_over_screen(score):
     """Display the game over screen."""
     menu_running = True
-    screen.fill(blue)
+    scaled_bg = pygame.transform.scale(main_menu_bg, (width, height))
+    screen.blit(scaled_bg, (0, 0))  # Draw the background image
 
-    # Title for Game Over Screen
-    title_font = pygame.font.SysFont("comicsansms", 50)
-    title = title_font.render("Game Over", True, yellow)
-
-    # Display Final Score
-    score_text = score_font.render(f"Score: {score}", True, white)
+    # Check if the score is a new high score
+    scores = load_highscores()
+    is_new_highscore = len(scores) < 5 or score > scores[-1][1]
 
     # Input box for name entry
     input_box = pygame.Rect(width / 2 - 100, 250, 200, 50)
@@ -332,36 +412,86 @@ def game_over_screen(score):
     option_positions = []
 
     while menu_running:
-        screen.fill(blue)
+        scaled_bg = pygame.transform.scale(main_menu_bg, (width, height))
+        screen.blit(scaled_bg, (0, 0))  # Draw the background image
 
-        # Draw Title and Score
-        screen.blit(title, [width / 2 - title.get_width() / 2, 50])
-        screen.blit(score_text, [width / 2 - score_text.get_width() / 2, 150])
+        # Draw Title
+        title_font = pygame.font.SysFont("comicsansms", 50)
+        render_text_with_background(
+            "Game Over",
+            title_font,
+            yellow,
+            (0, 0, 0, 150),
+            (width / 2, 50),
+            center=True
+        )
 
-        # Draw Input Box
-        txt_surface = options_font.render(name, True, white)
-        width_box = max(200, txt_surface.get_width() + 10)
-        input_box.w = width_box
-        screen.blit(txt_surface, (input_box.x + 5, input_box.y + 5))
-        pygame.draw.rect(screen, color, input_box, 2)
+        # Display Final Score
+        score_font = pygame.font.SysFont("comicsansms", 35)
+        render_text_with_background(
+            f"Score: {score}",
+            score_font,
+            white,
+            (0, 0, 0, 150),
+            (width / 2, 150),
+            center=True
+        )
 
-        # Handle blinking cursor
-        cursor_timer += clock.get_time()
-        if cursor_timer >= 500:
-            cursor_visible = not cursor_visible
-            cursor_timer = 0
-        if active and cursor_visible:
-            pygame.draw.line(screen, white, (input_box.x + 5 + txt_surface.get_width(), input_box.y + 5),
-                             (input_box.x + 5 + txt_surface.get_width(), input_box.y + 45), 2)
+        # Display Message for High Score or Not
+        message_font = pygame.font.SysFont("bahnschrift", 30)
+        if is_new_highscore:
+            render_text_with_background(
+                "Congratulations, new HiScore!!",
+                message_font,
+                white,
+                (0, 0, 0, 150),
+                (width / 2, 200),
+                center=True
+            )
+        else:
+            render_text_with_background(
+                "No new HiScore, better luck next time!",
+                message_font,
+                white,
+                (0, 0, 0, 150),
+                (width / 2, 200),
+                center=True
+            )
+
+        # Draw Input Box if New HiScore
+        if is_new_highscore:
+            input_box_bg = pygame.Surface((input_box.w + 10, input_box.h + 10), pygame.SRCALPHA)
+            input_box_bg.fill((0, 0, 0, 150))  # Semi-transparent black
+            screen.blit(input_box_bg, (input_box.x - 5, input_box.y - 5))
+
+            txt_surface = options_font.render(name, True, white)
+            width_box = max(200, txt_surface.get_width() + 10)
+            input_box.w = width_box
+            screen.blit(txt_surface, (input_box.x + 5, input_box.y + 5))
+            pygame.draw.rect(screen, color, input_box, 2)
+
+            # Handle blinking cursor
+            cursor_timer += clock.get_time()
+            if cursor_timer >= 500:
+                cursor_visible = not cursor_visible
+                cursor_timer = 0
+            if active and cursor_visible:
+                pygame.draw.line(screen, white, (input_box.x + 5 + txt_surface.get_width(), input_box.y + 5),
+                                 (input_box.x + 5 + txt_surface.get_width(), input_box.y + 45), 2)
 
         # Draw Menu Options
         option_positions.clear()
         for idx, option in enumerate(options):
             color = yellow if idx == selected_index else white
-            option_surface = options_font.render(option, True, color)
-            option_rect = option_surface.get_rect(center=(width // 2, 350 + idx * 50))
+            _, option_rect = render_text_with_background(
+                option,
+                options_font,
+                color,
+                (0, 0, 0, 150),
+                (width / 2, 350 + idx * 50),
+                center=True
+            )
             option_positions.append(option_rect)
-            screen.blit(option_surface, option_rect.topleft)
 
         pygame.display.update()
 
@@ -377,10 +507,12 @@ def game_over_screen(score):
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:  # Left click
                     if option_positions[0].collidepoint(event.pos):  # Play Again
-                        add_highscore(name, score)
+                        if is_new_highscore:
+                            add_highscore(name, score)
                         return "play_again"
                     if option_positions[1].collidepoint(event.pos):  # Quit to Main Menu
-                        add_highscore(name, score)
+                        if is_new_highscore:
+                            add_highscore(name, score)
                         return "quit_to_menu"
                 if input_box.collidepoint(event.pos):  # Click on input box
                     active = not active
@@ -391,7 +523,8 @@ def game_over_screen(score):
             if event.type == pygame.KEYDOWN:
                 if active:
                     if event.key == pygame.K_RETURN:
-                        add_highscore(name, score)
+                        if is_new_highscore:
+                            add_highscore(name, score)
                         return "quit_to_menu"
                     elif event.key == pygame.K_BACKSPACE:
                         name = name[:-1]
@@ -404,18 +537,30 @@ def game_over_screen(score):
                         selected_index = (selected_index + 1) % len(options)
                     elif event.key == pygame.K_RETURN:
                         if selected_index == 0:  # Play Again
-                            add_highscore(name, score)
+                            if is_new_highscore:
+                                add_highscore(name, score)
                             return "play_again"
                         elif selected_index == 1:  # Quit to Main Menu
-                            add_highscore(name, score)
+                            if is_new_highscore:
+                                add_highscore(name, score)
                             return "quit_to_menu"
 
+def toggle_fullscreen():
+    global screen, fullscreen
+    fullscreen = not fullscreen
+    if fullscreen:
+        display_info = pygame.display.Info()  # Get native resolution
+        width, height = display_info.current_w, display_info.current_h
+        screen = pygame.display.set_mode((width, height), pygame.NOFRAME | pygame.FULLSCREEN)
+    else:
+        screen = pygame.display.set_mode((width, height))
+
 def settings_menu():
-    global width, height, snake_block, snake_speed, screen
+    global width, height, snake_block, snake_speed, screen, fullscreen
     menu_running = True
     selected_index = 0  # Tracks the currently highlighted option
-    resolutions = ["640 x 360", "1280 x 720", "1920 x 1080"]
-    resolution_values = [(640, 360), (1280, 720), (1920, 1080)]
+    resolutions = ["1280 x 720", "1920 x 1080"]
+    resolution_values = [(1280, 720), (1920, 1080)]
     current_resolution_index = resolution_values.index((width, height)) if (width, height) in resolution_values else 0
     current_speed = snake_speed
 
@@ -425,13 +570,20 @@ def settings_menu():
 
         # Title for Settings Menu
         title_font = pygame.font.SysFont("comicsansms", 50)
-        title = title_font.render("Settings", True, yellow)
-        screen.blit(title, [width / 2 - title.get_width() / 2, 50])
+        render_text_with_background(
+            "Settings",
+            title_font,
+            yellow,
+            (0, 0, 0, 150),
+            (width / 2, 50),
+            center=True
+        )
 
         # Menu Options
         options = [
             f"Game Resolution: {resolutions[current_resolution_index]}",
             f"Game Speed: {current_speed}",
+            f"Fullscreen: {'ON' if fullscreen else 'OFF'}",
             "Back to Main Menu"
         ]
         options_font = pygame.font.SysFont("bahnschrift", 30)
@@ -439,11 +591,15 @@ def settings_menu():
 
         for idx, option in enumerate(options):
             color = white if idx != selected_index else yellow
-            option_surface = options_font.render(option, True, color)
-            option_rect = option_surface.get_rect(center=(width // 2, 150 + idx * 50))
+            _, option_rect = render_text_with_background(
+                option,
+                options_font,
+                color,
+                (0, 0, 0, 150),
+                (width / 2, 150 + idx * 50),
+                center=True
+            )
             option_positions.append(option_rect)
-
-            screen.blit(option_surface, option_rect.topleft)
 
         pygame.display.update()
 
@@ -456,12 +612,12 @@ def settings_menu():
                     selected_index = (selected_index - 1) % len(options)
                 elif event.key in [pygame.K_DOWN, pygame.K_s]:  # Move selection down
                     selected_index = (selected_index + 1) % len(options)
-                elif event.key in [pygame.K_RIGHT, pygame.K_d]:  # Increase resolution or speed
+                elif event.key in [pygame.K_RIGHT, pygame.K_d]:  # Increase resolution or toggle settings
                     if selected_index == 0:  # Change Resolution
                         current_resolution_index = (current_resolution_index + 1) % len(resolutions)
                         new_width, new_height = resolution_values[current_resolution_index]
                         width, height = new_width, new_height
-                        screen = pygame.display.set_mode((width, height))
+                        screen = pygame.display.set_mode((width, height), pygame.FULLSCREEN if fullscreen else 0)
                         snake_block = max(10, width // 64)  # Adjust snake block size proportionally
                         scale_sprites()
                         config['SETTINGS']['width'] = str(width)
@@ -473,12 +629,19 @@ def settings_menu():
                         snake_speed = current_speed
                         config['SETTINGS']['snake_speed'] = str(snake_speed)
                         save_config(config)
-                elif event.key in [pygame.K_LEFT, pygame.K_a]:  # Decrease resolution or speed
+                    elif selected_index == 2:  # Toggle Fullscreen
+                        fullscreen = not fullscreen
+                        display_info = pygame.display.Info()  # Get native resolution
+                        width, height = display_info.current_w, display_info.current_h
+                        screen = pygame.display.set_mode((width, height), pygame.NOFRAME | pygame.FULLSCREEN if fullscreen else 0)
+                        config['SETTINGS']['fullscreen'] = str(fullscreen)
+                        save_config(config)
+                elif event.key in [pygame.K_LEFT, pygame.K_a]:  # Decrease resolution or settings
                     if selected_index == 0:  # Change Resolution
                         current_resolution_index = (current_resolution_index - 1) % len(resolutions)
                         new_width, new_height = resolution_values[current_resolution_index]
                         width, height = new_width, new_height
-                        screen = pygame.display.set_mode((width, height))
+                        screen = pygame.display.set_mode((width, height), pygame.FULLSCREEN if fullscreen else 0)
                         snake_block = max(10, width // 64)  # Adjust snake block size proportionally
                         scale_sprites()
                         config['SETTINGS']['width'] = str(width)
@@ -491,7 +654,7 @@ def settings_menu():
                         config['SETTINGS']['snake_speed'] = str(snake_speed)
                         save_config(config)
                 elif event.key in [pygame.K_RETURN, pygame.K_SPACE]:  # Select option
-                    if selected_index == 2:  # Back to Main Menu
+                    if selected_index == 3:  # Back to Main Menu
                         return
 
             if event.type == pygame.MOUSEMOTION:
@@ -502,41 +665,50 @@ def settings_menu():
 
             if event.type == pygame.MOUSEBUTTONDOWN:
                 if event.button == 1:  # Left click
-                    if selected_index == 0:  # Change Resolution
-                        current_resolution_index = (current_resolution_index + 1) % len(resolutions)
-                        new_width, new_height = resolution_values[current_resolution_index]
-                        width, height = new_width, new_height
-                        screen = pygame.display.set_mode((width, height))
-                        snake_block = max(10, width // 64)  # Adjust snake block size proportionally
-                        scale_sprites()
-                        config['SETTINGS']['width'] = str(width)
-                        config['SETTINGS']['height'] = str(height)
-                        config['SETTINGS']['snake_block'] = str(snake_block)
-                        save_config(config)
-                    elif selected_index == 1:  # Adjust Speed
-                        current_speed = min(50, current_speed + 1)
-                        snake_speed = current_speed
-                        config['SETTINGS']['snake_speed'] = str(snake_speed)
-                        save_config(config)
-                    elif selected_index == 2:  # Back to Main Menu
-                        return
+                    if option_positions[selected_index].collidepoint(event.pos):
+                        if selected_index == 0:  # Change Resolution
+                            current_resolution_index = (current_resolution_index + 1) % len(resolutions)
+                            new_width, new_height = resolution_values[current_resolution_index]
+                            width, height = new_width, new_height
+                            screen = pygame.display.set_mode((width, height), pygame.FULLSCREEN if fullscreen else 0)
+                            snake_block = max(10, width // 64)  # Adjust snake block size proportionally
+                            scale_sprites()
+                            config['SETTINGS']['width'] = str(width)
+                            config['SETTINGS']['height'] = str(height)
+                            config['SETTINGS']['snake_block'] = str(snake_block)
+                            save_config(config)
+                        elif selected_index == 1:  # Adjust Speed
+                            current_speed = min(50, current_speed + 1)
+                            snake_speed = current_speed
+                            config['SETTINGS']['snake_speed'] = str(snake_speed)
+                            save_config(config)
+                        elif selected_index == 2:  # Toggle Fullscreen
+                            fullscreen = not fullscreen
+                            display_info = pygame.display.Info()  # Get native resolution
+                            width, height = display_info.current_w, display_info.current_h
+                            screen = pygame.display.set_mode((width, height), pygame.NOFRAME | pygame.FULLSCREEN if fullscreen else 0)
+                            config['SETTINGS']['fullscreen'] = str(fullscreen)
+                            save_config(config)
+                        elif selected_index == 3:  # Back to Main Menu
+                            return
                 elif event.button == 3:  # Right click
-                    if selected_index == 0:  # Change Resolution
-                        current_resolution_index = (current_resolution_index - 1) % len(resolutions)
-                        new_width, new_height = resolution_values[current_resolution_index]
-                        width, height = new_width, new_height
-                        screen = pygame.display.set_mode((width, height))
-                        snake_block = max(10, width // 64)  # Adjust snake block size proportionally
-                        scale_sprites()
-                        config['SETTINGS']['width'] = str(width)
-                        config['SETTINGS']['height'] = str(height)
-                        config['SETTINGS']['snake_block'] = str(snake_block)
-                        save_config(config)
-                    elif selected_index == 1:  # Adjust Speed
-                        current_speed = max(1, current_speed - 1)
-                        snake_speed = current_speed
-                        config['SETTINGS']['snake_speed'] = str(snake_speed)
-                        save_config(config)
+                    if option_positions[selected_index].collidepoint(event.pos):
+                        if selected_index == 0:  # Change Resolution
+                            current_resolution_index = (current_resolution_index - 1) % len(resolutions)
+                            new_width, new_height = resolution_values[current_resolution_index]
+                            width, height = new_width, new_height
+                            screen = pygame.display.set_mode((width, height), pygame.FULLSCREEN if fullscreen else 0)
+                            snake_block = max(10, width // 64)  # Adjust snake block size proportionally
+                            scale_sprites()
+                            config['SETTINGS']['width'] = str(width)
+                            config['SETTINGS']['height'] = str(height)
+                            config['SETTINGS']['snake_block'] = str(snake_block)
+                            save_config(config)
+                        elif selected_index == 1:  # Adjust Speed
+                            current_speed = max(1, current_speed - 1)
+                            snake_speed = current_speed
+                            config['SETTINGS']['snake_speed'] = str(snake_speed)
+                            save_config(config)
 
 def gameLoop(debug=False):
     global snake_block, snake_speed
@@ -548,6 +720,8 @@ def gameLoop(debug=False):
         game_over = False
         game_close = False
         game_start = False
+        poisoned = False
+        poison_timer = 0
 
         # Snake's initial position
         x1 = width // 2
@@ -556,11 +730,14 @@ def gameLoop(debug=False):
         # Initialize snake with a single segment
         snake_List = [[x1, y1]]
         Length_of_snake = 1
+        score = 0  # Separate variable to track the score
 
         # Place food randomly
         foodx = random.randint(0, (width - snake_block) // snake_block) * snake_block
         foody = random.randint(0, (height - snake_block) // snake_block) * snake_block
-        special_food = random.randint(1, 10) == 1  # 1 in 10 chance for special food
+
+        # Determine the food type
+        food_type = "add_1"
 
         # Debug initial values
         if debug:
@@ -568,7 +745,7 @@ def gameLoop(debug=False):
             print(f"Initial x1: {x1}, y1: {y1}")
             print(f"Initial Snake List: {snake_List}")
             print(f"Initial Food Position: {foodx}, {foody}")
-            print(f"Special Food: {special_food}")
+            print(f"Initial Food Type: {food_type}")
 
         # Reset direction variables
         x1_change = 0
@@ -577,7 +754,7 @@ def gameLoop(debug=False):
         while not game_over:
             # Handle "game close" state
             while game_close:
-                result = game_over_screen(Length_of_snake - 1)
+                result = game_over_screen(score)
                 if result == "play_again":
                     return gameLoop(debug)
                 elif result == "quit_to_menu":
@@ -604,13 +781,11 @@ def gameLoop(debug=False):
 
             if not game_start:
                 # Draw the initial state of the game while waiting for input
-                screen.fill(blue)
-                if special_food:
-                    screen.blit(superfood_image, (foodx, foody))
-                else:
-                    screen.blit(food_image, (foodx, foody))
+                scaled_bg = pygame.transform.scale(game_loop_bg, (width, height))
+                screen.blit(scaled_bg, (0, 0))  # Draw the background image
+                screen.blit(get_food_image(food_type), (foodx, foody))
                 our_snake(snake_List, x1_change, y1_change)
-                display_score(Length_of_snake - 1)
+                display_score(score)
                 pygame.display.update()
                 continue
 
@@ -640,23 +815,43 @@ def gameLoop(debug=False):
 
             # Check if the snake eats the food
             if x1 == foodx and y1 == foody:
-                if special_food:
-                    Length_of_snake *= 10  # Double length for special food
-                else:
-                    Length_of_snake += 10
+                if food_type.startswith("add_"):
+                    Length_of_snake += int(food_type[-1])  # Add corresponding length
+                    score += int(food_type[-1])  # Increase score
+                elif food_type == "multiplier":
+                    Length_of_snake *= 2
+                    score *= 2  # Double the score
+                elif food_type == "divider":
+                    Length_of_snake = max(1, Length_of_snake // 2)  # Reduce length but not below 1
+                    snake_List = snake_List[-Length_of_snake:]  # Visually truncate the snake
+                elif food_type == "poison":
+                    poisoned = True
+                elif food_type == "antidote":
+                    poisoned = False
+
                 # Respawn food
                 foodx = random.randint(0, (width - snake_block) // snake_block) * snake_block
                 foody = random.randint(0, (height - snake_block) // snake_block) * snake_block
-                special_food = random.randint(1, 10) == 1
+                food_type = get_random_food(poisoned)
+
+            # Handle poisoning effect
+            if poisoned:
+                poison_timer += clock.get_time()
+                if poison_timer >= 1000:  # Reduce length every second
+                    poison_timer = 0
+                    if Length_of_snake > 1:
+                        Length_of_snake -= 1
+                        score += 5
+                        del snake_List[0]  # Visually shorten the snake
+                    if Length_of_snake == 1:
+                        game_close = True
 
             # Render the game elements
-            screen.fill(blue)
-            if special_food:
-                screen.blit(superfood_image, (foodx, foody))
-            else:
-                screen.blit(food_image, (foodx, foody))
+            scaled_bg = pygame.transform.scale(game_loop_bg, (width, height))
+            screen.blit(scaled_bg, (0, 0))  # Draw the background image
+            screen.blit(get_food_image(food_type), (foodx, foody))
             our_snake(snake_List, x1_change, y1_change)
-            display_score(Length_of_snake - 1)  # Display the score
+            display_score(score)  # Display the score
             pygame.display.update()
 
             clock.tick(snake_speed)
@@ -664,6 +859,32 @@ def gameLoop(debug=False):
     # Cleanup after exiting
     pygame.quit()
     quit()
+
+# Helper functions for food
+def get_random_food(poisoned):
+    if poisoned:
+        return random.choices(
+            ["antidote", "add_4"], weights=[2, 1], k=1)[0]
+    return random.choices(
+        ["add_1", "add_2", "add_3", "add_4", "multiplier", "divider", "poison"],
+        weights=[6, 3, 2, 1, 1, 1, 1],
+        k=1
+    )[0]
+
+
+def get_food_image(food_type):
+    # Map food types to images
+    food_images = {
+        "add_1": food_image,
+        "add_2": food2_image,
+        "add_3": food3_image,
+        "add_4": food4_image,
+        "multiplier": multiplier_image,
+        "divider": divider_image,
+        "poison": poison_image,
+        "antidote": antidote_image
+    }
+    return food_images.get(food_type, food_image)
 
 if __name__ == "__main__":
     while True:
