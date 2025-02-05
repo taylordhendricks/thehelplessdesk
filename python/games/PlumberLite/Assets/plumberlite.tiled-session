@@ -1,0 +1,44 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "TestSet.tmx",
+    "expandedProjectPaths": [
+        "."
+    ],
+    "file.lastUsedOpenFilter": "All Files (*)",
+    "fileStates": {
+        "": {
+            "scaleInDock": 1,
+            "scaleInEditor": 5.5
+        },
+        "TestSet.tmx": {
+            "scale": 0.5,
+            "selectedLayer": 1,
+            "viewCenter": {
+                "x": 1313,
+                "y": 1803
+            }
+        },
+        "TestSet.tmx#TileSet1": {
+            "scaleInDock": 1
+        }
+    },
+    "frame.defaultDuration": 1000,
+    "last.exportedFilePath": "C:/Users/taylo/.vscode/Repositories/thehelplessdesk/python/games/PlumberLite/Assets",
+    "last.imagePath": "C:/Users/taylo/.vscode/Repositories/thehelplessdesk/python/games/PlumberLite/Assets",
+    "map.height": 100,
+    "map.lastUsedExportFilter": "All Files (*)",
+    "map.lastUsedFormat": "tmx",
+    "map.width": 100,
+    "openFiles": [
+        "TestSet.tmx"
+    ],
+    "project": "plumberlite.tiled-project",
+    "property.type": "bool",
+    "recentFiles": [
+        "TestSet.tmx"
+    ],
+    "tileset.embedInMap": true
+}

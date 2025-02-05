@@ -1,0 +1,26 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "",
+    "expandedProjectPaths": [
+    ],
+    "fileStates": {
+        "#Pokeclone": {
+            "scaleInDock": 0.75
+        }
+    },
+    "last.imagePath": "C:/Users/taylo/.vscode/Repositories/thehelplessdesk/python/games/PlumberLite/Assets",
+    "map.height": 1000,
+    "map.lastUsedFormat": "tmx",
+    "map.orientation": "1",
+    "map.width": 1000,
+    "openFiles": [
+    ],
+    "project": "pokeclone.tiled-project",
+    "property.type": "bool",
+    "recentFiles": [
+    ],
+    "tileset.embedInMap": true
+}

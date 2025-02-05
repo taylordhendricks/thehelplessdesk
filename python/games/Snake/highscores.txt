@@ -1,10 +1,10 @@
 Taylor:1109
+Taylor:572
+Taz:162
+Taz:142
 Test97:97
+Test:33
+:15
 13:13
 12:12
 :12
-taylo:8
-:6
-Test:4
-Tax:3
-3:3
