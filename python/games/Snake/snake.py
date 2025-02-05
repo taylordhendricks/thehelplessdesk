@@ -45,7 +45,7 @@ snake_speed = int(config['SETTINGS']['snake_speed'])
 
 # Screen dimensions
 screen = pygame.display.set_mode((width, height))
-pygame.display.set_caption('Snake Game')
+pygame.display.set_caption('Danger Noodle')
 fullscreen = False
 
 # Load and set the custom game icon
