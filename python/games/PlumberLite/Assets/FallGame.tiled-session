@@ -1,0 +1,42 @@
+{
+    "Map/SizeTest": {
+        "height": 4300,
+        "width": 2
+    },
+    "activeFile": "FallGame.tmx",
+    "expandedProjectPaths": [
+        "."
+    ],
+    "fileStates": {
+        "": {
+            "scaleInEditor": 3
+        },
+        ":/automap-tiles.tsx": {
+            "scaleInDock": 1
+        },
+        "FallGame.tmx": {
+            "scale": 3,
+            "selectedLayer": 2,
+            "viewCenter": {
+                "x": 16234.833333333332,
+                "y": 16459.833333333332
+            }
+        },
+        "FallGame.tmx#FallTiles": {
+            "scaleInDock": 0.75
+        }
+    },
+    "last.imagePath": "C:/Users/taylo/.vscode/Repositories/thehelplessdesk/python/games/PlumberLite/Assets",
+    "map.height": 1000,
+    "map.lastUsedFormat": "tmx",
+    "map.width": 1000,
+    "openFiles": [
+        "FallGame.tmx"
+    ],
+    "project": "FallGame.tiled-project",
+    "property.type": "object",
+    "recentFiles": [
+        "FallGame.tmx"
+    ],
+    "tileset.embedInMap": true
+}
